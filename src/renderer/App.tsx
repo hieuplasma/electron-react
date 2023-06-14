@@ -3,9 +3,15 @@ import icon from '../../assets/icon.svg';
 import './App.css';
 
 window.electron.ipcRenderer.on('key-shortcut', function(args){
-  console.log('hihihaha' + args)
+  console.log('hihihaha',args)
   // createScreenshotWindow(1)
 })
+
+window.electron.ipcRenderer.on('take-img', function(args){
+  console.log('img ne',args)
+  // createScreenshotWindow(1)
+})
+
 
 function Hello() {
   return (
@@ -15,24 +21,20 @@ function Hello() {
       </div>
       <h1>electron-react-boilerplate</h1>
       <div className="Hello">
-          <button type="button" onClick={()=> window.electron.ipcRenderer.capture()}>
+          <button type="button" onClick={()=> window.electron.ipcRenderer.sendMessage('key-shortcut', [1])}>
           <span role="img" aria-label="books" >
               📚
             </span>
              Read our docs
           </button>
-        <a
-          href="https://github.com/sponsors/electron-react-boilerplate"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <button type="button">
+      
+          <button type="button" onClick={()=> window.electron.ipcRenderer.sendMessage('key-shortcut', [1])}>
             <span role="img" aria-label="folded hands">
               🙏
             </span>
             Donate
           </button>
-        </a>
+       
       </div>
       <script src="./component/crop.js">
     </script>

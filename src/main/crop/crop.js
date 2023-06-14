@@ -6,7 +6,7 @@ import { BrowserWindow } from '@electron/remote';
 var imgCropWindow;
 
 export function createScreenshotWindow(requestType){
-    console.log("wtf")
+    console.log("wtf", requestType)
     takeScreenshot(async function(imageURL){
         var request = {
             imageURL:imageURL,
@@ -99,34 +99,9 @@ async function takeScreenshot(callback, imageFormat) {
                 }
             }
         }
-    // desktopCapturer.getSources({ types: ['window', 'screen'] }).then(async sources => {
-    //     for (const source of sources) {
-    //         // Filter: main screen
-    //         if ((source.name === "Entire Screen") || (source.name === "Screen 1") || (source.name === "Screen 2")) {
-    //             try{
-    //                 const stream = await navigator.mediaDevices.getUserMedia({
-    //                     audio: false,
-    //                     video: {
-    //                         mandatory: {
-    //                             chromeMediaSource: 'desktop',
-    //                             chromeMediaSourceId: source.id,
-    //                             minWidth: 1280,
-    //                             maxWidth: 4000,
-    //                             minHeight: 720,
-    //                             maxHeight: 4000
-    //                         }
-    //                     }
-    //                 });
-    //                 handleStream(stream);
-    //             } catch (e) {
-    //                 handleError(e);
-    //             }
-    //         }
-    //     }
-    // });
 }
 
 ipcRenderer.on('key-shortcut', function(args){
-    console.log("making bur bur");
+    console.log("making on crop.js", args);
     createScreenshotWindow(1);
 })

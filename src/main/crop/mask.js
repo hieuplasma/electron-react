@@ -3,8 +3,7 @@ console.log("mask.js")
 const {ipcRenderer, clipboard, nativeImage} = require('electron');
 const {getCurrentWindow} = require('@electron/remote');
 
-var Tesseract = require('tesseract.js');
-
+// var Tesseract = require('tesseract.js');
 
 function blob_to_buffer(blob, callback) {
 	const file_reader = new FileReader()
@@ -26,6 +25,7 @@ var window = getCurrentWindow();
 
 function mask(imageURL, type){
     var img = document.getElementById( "target" );
+    let tmp = undefined
     img.src = imageURL;
     console.log("doing")
     Jcrop.load('target').then(img => {
@@ -59,7 +59,6 @@ function mask(imageURL, type){
             canvasElement.height = Math.floor(cc.h);
             var ctx = canvasElement.getContext("2d");
             
-            
             // console.log(image.naturalWidth, image.naturalHeight, image.width, image.height);
             ctx.drawImage(image, cc.x, cc.y, cc.w, cc.h, 0, 0, canvasElement.width, canvasElement.height);
             stage.destroy()
@@ -72,36 +71,41 @@ function mask(imageURL, type){
                         
                         var native_image = nativeImage.createFromBuffer(buffer);        
                         clipboard.writeImage(native_image)
-    
+                        console.log(ipcRenderer)
+                        console.log(native_image.toDataURL())
+                        ipcRenderer.send('take-img', native_image.toDataURL())
+                        clipboard.writeText(native_image.toDataURL())
+                        tmp = native_image.toDataURL()
                         var x = document.getElementById("snackbarText");
                         x.innerHTML = "Cropped image copied to clipboard..!!❤️"
                         x1.className = x1.className.replace("show", "");
                         x.className = "show";
-                        setTimeout(function(){ 
-                            x.className = x.className.replace("show", ""); 
-                            window.close();
-                        }, 1000);
+                        
+                        // setTimeout(function(){ 
+                        //     x.className = x.className.replace("show", ""); 
+                        //     window.close();
+                        // }, 1000);
                     })
                 })
             }
             else if(type==2){
-                var imgUrl = canvasElement.toDataURL();
-                Tesseract.recognize(
-                    imgUrl,
-                    'eng',
-                    { logger: m => console.log(m) }
-                ).then(({ data: { text } }) => {
-                        console.log(text);
-                        clipboard.writeText(text)
-                        var x = document.getElementById("snackbarText");
-                        x.innerHTML = "Text copied to clipboard..!!❤️";
-                        x1.className = x1.className.replace("show", "");
-                        x.className = "show";
-                        setTimeout(function(){ 
-                            x.className = x.className.replace("show", ""); 
-                            window.close();
-                        }, 1000);
-                })
+                // var imgUrl = canvasElement.toDataURL();
+                // Tesseract.recognize(
+                //     imgUrl,
+                //     'eng',
+                //     { logger: m => console.log(m) }
+                // ).then(({ data: { text } }) => {
+                //         console.log(text);
+                //         clipboard.writeText(text)
+                //         var x = document.getElementById("snackbarText");
+                //         x.innerHTML = "Text copied to clipboard..!!❤️";
+                //         x1.className = x1.className.replace("show", "");
+                //         x.className = "show";
+                //         setTimeout(function(){ 
+                //             x.className = x.className.replace("show", ""); 
+                //             window.close();
+                //         }, 1000);
+                // })
             }
             
         })
@@ -114,8 +118,8 @@ ipcRenderer.on('request-object', function (event, requestObject){
 
     console.log(requestObject)
     
-    if(type==1){
-        mask(imageUrl,1);
+    if(type== 1 || type == 3){
+       mask(imageUrl,1);
     }
     else if(type==2){
         mask(imageUrl,2);

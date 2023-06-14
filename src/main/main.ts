@@ -15,9 +15,8 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 require('@electron/remote/main').initialize()
-// const BrowserWindowCrop = require('@electron/remote').BrowserWindow
 
-var imgCropWindow: any
+var imgCropWindow: BrowserWindow | null = null;
 class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';
@@ -34,8 +33,8 @@ ipcMain.on('ipc-example', async (event, arg) => {
   event.reply('ipc-example', msgTemplate('pong'));
 });
 
-ipcMain.on('runCommand', function(args){
-  console.log("making");
+ipcMain.on('key-shortcut', async(event, args)=>{
+  if (mainWindow !== null) mainWindow.webContents.send('key-shortcut', 1)
 })
 
 if (process.env.NODE_ENV === 'production') {
@@ -117,7 +116,7 @@ const createWindow = async () => {
   });
 
   ipcMain.handle('get-sources',async () => {
-    return await desktopCapturer.getSources({ types: ['window', 'screen'] })
+    return await desktopCapturer.getSources({ types: ['screen'] })
    });
 
   ipcMain.handle('crop-img',( event, req: any)=> {
@@ -133,12 +132,12 @@ const createWindow = async () => {
         })
 
         require("@electron/remote/main").enable(imgCropWindow.webContents)
-        imgCropWindow.loadFile('src/main/crop/mask.html').then(()=>{
-            imgCropWindow.webContents.send( 'request-object',req);
+       imgCropWindow.loadFile('src/main/crop/mask.html').then(async()=>{
+       imgCropWindow?.webContents.send('request-object', req);
         })
 
         imgCropWindow.once('ready-to-show', () => {
-            imgCropWindow.show()
+           imgCropWindow?.show()
         })
    } )
   // Remove this if your app does not use auto updates
@@ -168,13 +167,13 @@ app
       if (mainWindow === null) createWindow();
     });
     globalShortcut.register('Alt+CommandOrControl+I', () => {
-      if (mainWindow !== null)   mainWindow.webContents.send( 'key-shortcut', 1);
+      if (mainWindow !== null) mainWindow.webContents.send('key-shortcut', 1);
        })
       //  globalShortcut.register('Alt+CommandOrControl+O', () => {
       //    if (mainWindow !== null)   mainWindow.webContents.send('key-shortcut-ocr', 2);
       //  })
-       globalShortcut.register('Esc', () => {
-          if (imgCropWindow)  imgCropWindow.close();
+    globalShortcut.register('Esc', () => {
+          if (imgCropWindow) imgCropWindow.close();
        })
   })
   .catch(console.log);
