@@ -25,10 +25,13 @@ const electronHandler = {
     },
     capture() {
       ipcRenderer.on('key-shortcut', function(args){
-        console.log("making bur bur");
+        console.log("making crop");
         createScreenshotWindow(1);
-    })
-    }
+    })},
+    closeCrop() {
+      ipcRenderer.on('key-shortcut', function(args){
+        console.log("close crop");
+    })}
   },
   // desktopCapturer:{
   //   getResource(type: SourcesOptions, func?: (...args: unknown[]) => void) {

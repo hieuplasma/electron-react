@@ -15,6 +15,8 @@ export function createScreenshotWindow(requestType){
 
         console.log(request)
 
+        ipcRenderer.invoke('crop-img', request)
+
         // imgCropWindow = new BrowserWindow({
         //     frame:false,
         //     fullscreen:true,

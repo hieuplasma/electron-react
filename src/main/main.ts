@@ -10,12 +10,14 @@
  */
 import path from 'path';
 import { app, shell, ipcMain, globalShortcut,BrowserWindow, desktopCapturer } from 'electron';
-import {} from '@electron/remote'
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
+require('@electron/remote/main').initialize()
+// const BrowserWindowCrop = require('@electron/remote').BrowserWindow
 
+var imgCropWindow: any
 class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';
@@ -119,6 +121,27 @@ const createWindow = async () => {
     return await desktopCapturer.getSources({ types: ['window', 'screen'] })
    });
 
+  ipcMain.handle('crop-img',async(req: any)=> {
+    imgCropWindow = new BrowserWindow({
+            frame:false,
+            fullscreen:true,
+            show:false,
+            webPreferences: {
+                nodeIntegration: true,
+                contextIsolation: false,
+                // enableRemoteModule: true,
+            }
+        })
+
+        console.log(imgCropWindow)
+        imgCropWindow.loadFile('src/main/crop/mask.html').then(()=>{
+            imgCropWindow.webContents.send( 'request-object',req);
+        })
+
+        imgCropWindow.once('ready-to-show', () => {
+            imgCropWindow.show()
+        })
+   } )
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();
@@ -151,9 +174,9 @@ app
       //  globalShortcut.register('Alt+CommandOrControl+O', () => {
       //    if (mainWindow !== null)   mainWindow.webContents.send('key-shortcut-ocr', 2);
       //  })
-      //  globalShortcut.register('Esc', () => {
-      //    if (mainWindow !== null)  mainWindow.webContents.send('close-crop');
-      //  })
+       globalShortcut.register('Esc', () => {
+          if (imgCropWindow)  imgCropWindow.close();
+       })
   })
   .catch(console.log);
 
