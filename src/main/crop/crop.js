@@ -7,7 +7,7 @@ var imgCropWindow;
 
 export function createScreenshotWindow(requestType){
     console.log("wtf")
-    takeScreenshot(function(imageURL){
+    takeScreenshot(async function(imageURL){
         var request = {
             imageURL:imageURL,
             type:requestType
@@ -15,27 +15,8 @@ export function createScreenshotWindow(requestType){
 
         console.log(request)
 
-        ipcRenderer.invoke('crop-img', request)
-
-        // imgCropWindow = new BrowserWindow({
-        //     frame:false,
-        //     fullscreen:true,
-        //     show:false,
-        //     webPreferences: {
-        //         nodeIntegration: true,
-        //         contextIsolation: false,
-        //         enableRemoteModule: true
-        //     }
-        // })
-
-        // console.log(imgCropWindow)
-        // imgCropWindow.loadFile('./mask.html').then(()=>{
-        //     imgCropWindow.webContents.send( 'request-object',request);
-        // })
-
-        // imgCropWindow.once('ready-to-show', () => {
-        //     imgCropWindow.show()
-        // })
+     const abc = await ipcRenderer.invoke('crop-img', request)
+     console.log(abc)
     },'image/png');
 }
 
@@ -44,7 +25,6 @@ export function createScreenshotWindow(requestType){
 
 async function takeScreenshot(callback, imageFormat) {
     var _this = this;
-    console.log(callback, imageFormat)
     // this.callback = callback;
     imageFormat = imageFormat || 'image/jpeg';
     

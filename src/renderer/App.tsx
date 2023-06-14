@@ -1,7 +1,6 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import icon from '../../assets/icon.svg';
 import './App.css';
-import { createScreenshotWindow } from './component/crop';
 
 window.electron.ipcRenderer.on('key-shortcut', function(args){
   console.log('hihihaha' + args)
@@ -16,7 +15,7 @@ function Hello() {
       </div>
       <h1>electron-react-boilerplate</h1>
       <div className="Hello">
-          <button type="button" onClick={()=> createScreenshotWindow(1)}>
+          <button type="button" onClick={()=> window.electron.ipcRenderer.capture()}>
           <span role="img" aria-label="books" >
               📚
             </span>

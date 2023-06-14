@@ -117,11 +117,10 @@ const createWindow = async () => {
   });
 
   ipcMain.handle('get-sources',async () => {
-    console.log("dcm?")
     return await desktopCapturer.getSources({ types: ['window', 'screen'] })
    });
 
-  ipcMain.handle('crop-img',async(req: any)=> {
+  ipcMain.handle('crop-img',( event, req: any)=> {
     imgCropWindow = new BrowserWindow({
             frame:false,
             fullscreen:true,
@@ -133,7 +132,7 @@ const createWindow = async () => {
             }
         })
 
-        console.log(imgCropWindow)
+        require("@electron/remote/main").enable(imgCropWindow.webContents)
         imgCropWindow.loadFile('src/main/crop/mask.html').then(()=>{
             imgCropWindow.webContents.send( 'request-object',req);
         })
