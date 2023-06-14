@@ -121,6 +121,7 @@ export default class MenuBuilder {
           label: 'Toggle Developer Tools',
           accelerator: 'Alt+Command+I',
           click: () => {
+            // createScreenshotWindow(1)
             this.mainWindow.webContents.toggleDevTools();
           },
         },

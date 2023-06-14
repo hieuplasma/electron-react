@@ -9,7 +9,8 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, shell, ipcMain, globalShortcut,BrowserWindow, desktopCapturer } from 'electron';
+import {} from '@electron/remote'
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
@@ -30,6 +31,10 @@ ipcMain.on('ipc-example', async (event, arg) => {
   console.log(msgTemplate(arg));
   event.reply('ipc-example', msgTemplate('pong'));
 });
+
+ipcMain.on('runCommand', function(args){
+  console.log("making");
+})
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -75,6 +80,8 @@ const createWindow = async () => {
     height: 728,
     icon: getAssetPath('icon.png'),
     webPreferences: {
+      nodeIntegration: true,
+      // contextIsolation: false,
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),
@@ -107,6 +114,11 @@ const createWindow = async () => {
     return { action: 'deny' };
   });
 
+  ipcMain.handle('get-sources',async () => {
+    console.log("dcm?")
+    return await desktopCapturer.getSources({ types: ['window', 'screen'] })
+   });
+
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();
@@ -133,5 +145,26 @@ app
       // dock icon is clicked and there are no other windows open.
       if (mainWindow === null) createWindow();
     });
+    globalShortcut.register('Alt+CommandOrControl+I', () => {
+      if (mainWindow !== null)   mainWindow.webContents.send( 'key-shortcut', 1);
+       })
+      //  globalShortcut.register('Alt+CommandOrControl+O', () => {
+      //    if (mainWindow !== null)   mainWindow.webContents.send('key-shortcut-ocr', 2);
+      //  })
+      //  globalShortcut.register('Esc', () => {
+      //    if (mainWindow !== null)  mainWindow.webContents.send('close-crop');
+      //  })
   })
   .catch(console.log);
+
+  app.on('window-all-closed', function () {
+    if (process.platform !== 'darwin') {
+      globalShortcut.unregisterAll();
+      app.quit();
+    }
+  })
+  
+  app.on('will-quit', () => {
+    // Unregister all shortcuts.
+    globalShortcut.unregisterAll()
+  })
