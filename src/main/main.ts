@@ -9,12 +9,19 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, shell, ipcMain, globalShortcut,BrowserWindow, desktopCapturer } from 'electron';
+import {
+  app,
+  shell,
+  ipcMain,
+  globalShortcut,
+  BrowserWindow,
+  desktopCapturer,
+} from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
-require('@electron/remote/main').initialize()
+require('@electron/remote/main').initialize();
 
 var imgCropWindow: BrowserWindow | null = null;
 class AppUpdater {
@@ -33,9 +40,9 @@ ipcMain.on('ipc-example', async (event, arg) => {
   event.reply('ipc-example', msgTemplate('pong'));
 });
 
-ipcMain.on('key-shortcut', async(event, args)=>{
-  if (mainWindow !== null) mainWindow.webContents.send('key-shortcut', 1)
-})
+ipcMain.on('key-shortcut', async (event, args) => {
+  if (mainWindow !== null) mainWindow.webContents.send('key-shortcut', 1);
+});
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -115,31 +122,43 @@ const createWindow = async () => {
     return { action: 'deny' };
   });
 
-  ipcMain.handle('get-sources',async () => {
-    return await desktopCapturer.getSources({ types: ['screen'] })
-   });
+  ipcMain.handle('get-sources', async () => {
+    return await desktopCapturer.getSources({ types: ['screen'] });
+  });
 
-  ipcMain.handle('crop-img',( event, req: any)=> {
+  ipcMain.handle('crop-img', (event, req: any) => {
     imgCropWindow = new BrowserWindow({
-            frame:false,
-            fullscreen:true,
-            show:false,
-            webPreferences: {
-                nodeIntegration: true,
-                contextIsolation: false,
-                // enableRemoteModule: true,
-            }
-        })
+      frame: false,
+      fullscreen: true,
+      show: false,
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false,
+        // enableRemoteModule: true,
+      },
+    });
 
-        require("@electron/remote/main").enable(imgCropWindow.webContents)
-       imgCropWindow.loadFile('src/main/crop/mask.html').then(async()=>{
-       imgCropWindow?.webContents.send('request-object', req);
-        })
+    ipcMain.on('take-img', async (event, args) => {
+      if (mainWindow !== null) mainWindow.webContents.send('take-img', args);
+      ipcMain.removeAllListeners('take-img');
+    })
 
-        imgCropWindow.once('ready-to-show', () => {
-           imgCropWindow?.show()
-        })
-   } )
+    // setTimeout(() => {
+    //   ipcMain.removeListener('take-img', async (event, args) => {
+    //     if (mainWindow !== null) mainWindow.webContents.send('take-img', args);
+    //   });
+    // }, 1000);
+   
+
+    require('@electron/remote/main').enable(imgCropWindow.webContents);
+    imgCropWindow.loadFile('src/main/crop/mask.html').then(async () => {
+      imgCropWindow?.webContents.send('request-object', req);
+    });
+
+    imgCropWindow.once('ready-to-show', () => {
+      imgCropWindow?.show();
+    });
+  });
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();
@@ -168,24 +187,22 @@ app
     });
     globalShortcut.register('Alt+CommandOrControl+I', () => {
       if (mainWindow !== null) mainWindow.webContents.send('key-shortcut', 1);
-       })
-      //  globalShortcut.register('Alt+CommandOrControl+O', () => {
-      //    if (mainWindow !== null)   mainWindow.webContents.send('key-shortcut-ocr', 2);
-      //  })
+    });
+    
     globalShortcut.register('Esc', () => {
-          if (imgCropWindow) imgCropWindow.close();
-       })
+      if (imgCropWindow) imgCropWindow.close();
+    });
   })
   .catch(console.log);
 
-  app.on('window-all-closed', function () {
-    if (process.platform !== 'darwin') {
-      globalShortcut.unregisterAll();
-      app.quit();
-    }
-  })
-  
-  app.on('will-quit', () => {
-    // Unregister all shortcuts.
-    globalShortcut.unregisterAll()
-  })
+app.on('window-all-closed', function () {
+  if (process.platform !== 'darwin') {
+    globalShortcut.unregisterAll();
+    app.quit();
+  }
+});
+
+app.on('will-quit', () => {
+  // Unregister all shortcuts.
+  globalShortcut.unregisterAll();
+});

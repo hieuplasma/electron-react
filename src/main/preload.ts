@@ -8,12 +8,14 @@ export type Channels = 'ipc-example' | 'key-shortcut' | 'take-img';
 const electronHandler = {
   ipcRenderer: {
     sendMessage(channel: Channels, ...args: unknown[]) {
-      console.log(channel, args, ipcRenderer)
+      console.log(channel, args, ipcRenderer);
       ipcRenderer.send(channel, ...args);
     },
     on(channel: Channels, func: (...args: unknown[]) => void) {
-      let subscription = (_event: IpcRendererEvent, ...args: unknown[]) =>
+      let subscription = (_event: IpcRendererEvent, ...args: unknown[]) => {
         func(...args);
+        if (channel == 'take-img') ipcRenderer.removeAllListeners(channel);
+      };
       ipcRenderer.on(channel, subscription);
 
       return () => {
@@ -25,21 +27,23 @@ const electronHandler = {
     },
 
     capture() {
-      ipcRenderer.on('key-shortcut', function(args){
-        console.log("add")
+      ipcRenderer.on('key-shortcut', function (args) {
+        console.log('add');
         createScreenshotWindow(3);
-    })},
-    capture2() {
-      ipcRenderer.on('take-img', function(args){
-        console.log("add")
-        createScreenshotWindow(3);
-    })},
+      });
+    },
+    // capture2() {
+    //   ipcRenderer.on('key-shortcut', function (args) {
+    //     console.log('add');
+    //     createScreenshotWindow(3);
+    //   });
+    // },
 
     // closeCrop() {
     //   ipcRenderer.on('key-shortcut', function(args){
     //     console.log("close crop");
     // })}
-  }
+  },
 };
 
 contextBridge.exposeInMainWorld('electron', electronHandler);
